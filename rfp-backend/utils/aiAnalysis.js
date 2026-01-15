@@ -70,7 +70,9 @@ Please analyze this vendor response comprehensively and provide:
 
 6. Risk Assessment: 
    - Identify potential risks (experience gaps, budget concerns, timeline issues)
-   - Rate risk level: Low, Medium, or High
+   - Provide detailed risk analysis as an OBJECT with:
+     * potentialRisks: array of specific risk descriptions
+     * riskLevel: "Low", "Medium", or "High"
 
 7. Recommendation: Based on analysis, recommend one of:
    - "Highly Recommended" - Excellent fit, minimal concerns
@@ -94,7 +96,10 @@ Format your response as JSON with this EXACT structure:
   "weaknesses": ["Specific concern 1", "Specific concern 2"],
   "budgetAnalysis": "Detailed comparison of proposed price vs RFP budget",
   "timelineAnalysis": "Detailed assessment of timeline vs deadline",
-  "riskAssessment": "Detailed risk analysis with risk level",
+  "riskAssessment": {
+    "potentialRisks": ["Risk 1", "Risk 2", "Risk 3"],
+    "riskLevel": "Medium"
+  },
   "keyInsights": "Executive summary in 2-3 sentences",
   "structuredDetails": {
     "coreCompetencies": ["competency1", "competency2"],

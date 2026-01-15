@@ -72,7 +72,7 @@ const vendorResponseSchema = new mongoose.Schema({
       weaknesses: [String],
       budgetAnalysis: String,
       timelineAnalysis: String,
-      riskAssessment: String,
+      riskAssessment: mongoose.Schema.Types.Mixed, // Allow both String and Object
       keyInsights: String,
       structuredDetails: {
         coreCompetencies: [String],

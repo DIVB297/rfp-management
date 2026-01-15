@@ -150,9 +150,9 @@ const syncEmails = async () => {
           return;
         }
 
-        // Search for emails from the last 5 days
+        // Search for emails from the last 1 days
         const searchCriteria = [
-          ['SINCE', new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)],
+          ['SINCE', new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)],
         ];
 
         imap.search(searchCriteria, (err, searchResults) => {
@@ -208,19 +208,40 @@ const syncEmails = async () => {
                     console.log(`\n📧 Processing email from: ${senderEmail}`);
                     console.log(`   Subject: ${mail.subject}`);
                     
-                    // Find RFP where this sender is a selected vendor (case-insensitive)
-                    const rfp = await RFP.findOne({ 
-                      selectedVendors: { $regex: new RegExp(`^${senderEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-                    }).sort({ createdAt: -1 });
+                    // Extract RFP ID from email subject or body
+                    const emailText = mail.text || '';
+                    const rfpId = extractRFPId(mail.subject, emailText);
                     
-                    if (!rfp) {
-                      console.log(`   ✗ No RFP found where ${senderEmail} is a vendor`);
+                    if (!rfpId) {
+                      console.log(`   ✗ No RFP ID found in email`);
                       resolveEmail();
                       return;
                     }
                     
-                    const rfpId = rfp._id.toString();
-                    console.log(`   ✓ Found RFP: ${rfpId} - ${rfp.projectTitle}`);
+                    console.log(`   ✓ Extracted RFP ID: ${rfpId}`);
+                    
+                    // Find RFP by ID
+                    const rfp = await RFP.findById(rfpId);
+                    
+                    if (!rfp) {
+                      console.log(`   ✗ RFP not found with ID: ${rfpId}`);
+                      resolveEmail();
+                      return;
+                    }
+                    
+                    console.log(`   ✓ Found RFP: ${rfp.projectTitle}`);
+                    
+                    // Verify sender is an authorized vendor for this RFP
+                    const isAuthorizedVendor = rfp.selectedVendors.some(
+                      vendor => vendor.toLowerCase() === senderEmail.toLowerCase()
+                    );
+                    
+                    if (!isAuthorizedVendor) {
+                      console.log(`   ✗ ${senderEmail} is not an authorized vendor for this RFP`);
+                      resolveEmail();
+                      return;
+                    }
+                    
                     console.log(`   ✓ ${senderEmail} is an authorized vendor`);
 
                     // Parse vendor response

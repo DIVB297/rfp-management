@@ -46,7 +46,10 @@ interface VendorResponse {
       concerns?: string[];
       budgetAnalysis?: string;
       timelineAnalysis?: string;
-      riskAssessment?: string;
+      riskAssessment?: string | {
+        potentialRisks?: string[];
+        riskLevel?: string;
+      };
       keyInsights?: string;
       structuredDetails?: {
         coreCompetencies?: string[];
@@ -785,7 +788,26 @@ export default function RFPDetailPage() {
                             <div className="text-xl">🛡️</div>
                             <div className="flex-1">
                               <h6 className="text-sm font-bold text-gray-900 mb-1">Risk Assessment</h6>
-                              <p className="text-sm text-gray-700 leading-relaxed">{selectedResponse.aiAnalysis.analysis.riskAssessment}</p>
+                              {typeof selectedResponse.aiAnalysis.analysis.riskAssessment === 'string' ? (
+                                <p className="text-sm text-gray-700 leading-relaxed">{selectedResponse.aiAnalysis.analysis.riskAssessment}</p>
+                              ) : (
+                                <div>
+                                  {selectedResponse.aiAnalysis.analysis.riskAssessment.riskLevel && (
+                                    <p className="text-sm font-semibold mb-2">Risk Level: <span className={`${
+                                      selectedResponse.aiAnalysis.analysis.riskAssessment.riskLevel === 'High' ? 'text-red-600' :
+                                      selectedResponse.aiAnalysis.analysis.riskAssessment.riskLevel === 'Medium' ? 'text-yellow-600' :
+                                      'text-green-600'
+                                    }`}>{selectedResponse.aiAnalysis.analysis.riskAssessment.riskLevel}</span></p>
+                                  )}
+                                  {selectedResponse.aiAnalysis.analysis.riskAssessment.potentialRisks && (
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {selectedResponse.aiAnalysis.analysis.riskAssessment.potentialRisks.map((risk, idx) => (
+                                        <li key={idx} className="text-sm text-gray-700">{risk}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
