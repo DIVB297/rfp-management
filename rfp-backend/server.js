@@ -10,6 +10,36 @@ const fs = require('fs');
 
 const app = express();
 
+// CORS middleware - MUST be first, before any other middleware
+app.use((req, res, next) => {
+  // Log for debugging
+  console.log('Request:', req.method, req.url, 'Origin:', req.headers.origin);
+  
+  // Set CORS headers
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight');
+    return res.status(204).end();
+  }
+  
+  next();
+});
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Connect to MongoDB
 connectDB();
 
@@ -18,25 +48,6 @@ const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
-
-// Middleware
-// Very permissive CORS for debugging
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Max-Age', '86400');
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
@@ -51,6 +62,20 @@ app.get('/api/health', (req, res) => {
   res.json({
     success: true,
     message: 'RFP Management API is running',
+    timestamp: new Date().toISOString(),
+    env: {
+      hasMongoDb: !!process.env.MONGODB_URI,
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      nodeEnv: process.env.NODE_ENV
+    }
+  });
+});
+
+// Simple test endpoint without DB
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Test endpoint working',
     timestamp: new Date().toISOString()
   });
 });
