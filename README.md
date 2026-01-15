@@ -23,7 +23,6 @@ This system provides a complete workflow for managing RFPs and vendor responses:
 - One-click sync on RFPs page
 - Response count badges
 - Duplicate prevention
-- 5-day sync window
 
 ### 🤖 AI-Powered Vendor Analysis
 - Automatic analysis using OpenAI GPT-4 Turbo
@@ -67,55 +66,6 @@ This system provides a complete workflow for managing RFPs and vendor responses:
 - **Tailwind CSS 4** - Utility-first styling
 - **Modern responsive design** - Mobile-friendly UI
 
-## 📁 Project Structure
-
-```
-rfp-management/
-├── rfp-backend/
-│   ├── config/
-│   │   └── db.js                    # MongoDB connection
-│   ├── models/
-│   │   ├── RFP.js                   # RFP schema (status: pending/closed/accepted)
-│   │   ├── Vendor.js                # Vendor schema
-│   │   └── VendorResponse.js        # Vendor response schema
-│   ├── routes/
-│   │   ├── rfp.js                   # RFP CRUD + status update + response counts
-│   │   ├── vendor.js                # Vendor management
-│   │   ├── vendorResponse.js        # Vendor responses + acceptance endpoint
-│   │   └── email.js                 # IMAP sync routes
-│   ├── utils/
-│   │   ├── emailService.js          # SMTP email sending + acceptance emails
-│   │   ├── aiAnalysis.js            # OpenAI GPT-4 analysis
-│   │   └── imapService.js           # IMAP email sync service
-│   ├── uploads/                     # Uploaded RFP files
-│   ├── .env                         # Environment variables (not in git)
-│   ├── .env.example                 # Example environment file
-│   ├── server.js                    # Main Express server
-│   └── package.json
-│
-└── rfp-frontend/
-    ├── src/
-    │   └── app/
-    │       ├── page.tsx             # Home page (2 cards: Submit RFP, View RFPs)
-    │       ├── layout.tsx           # Root layout
-    │       ├── globals.css          # Global styles
-    │       ├── submit/
-    │       │   └── page.tsx         # RFP submission form
-    │       └── rfps/
-    │           ├── page.tsx         # RFPs list + Sync button + Quick View
-    │           └── [id]/
-    │               └── page.tsx     # RFP details + vendor responses + sorting + acceptance
-    ├── .env.local                   # Frontend API URL
-    ├── next.config.ts               # Next.js configuration
-    ├── tsconfig.json                # TypeScript configuration
-    ├── tailwind.config.ts           # Tailwind CSS configuration
-    └── package.json
-
-Note: Deprecated folders removed:
-- /emails page (email inbox functionality moved to /rfps page)
-- /vendor-response page (not needed)
-- /public SVG files (unused Next.js default assets)
-```
 
 ## 🚀 Quick Start
 
@@ -255,7 +205,6 @@ Open your browser and navigate to: **http://localhost:3000**
    - Deadline
 4. Add requirements specification
 5. Select vendors from dropdown (multi-select)
-6. Optionally attach files (max 5 files, 10MB each)
 7. Click **"Submit RFP"**
 8. Emails are automatically sent to selected vendors
 
@@ -330,7 +279,6 @@ Open your browser and navigate to: **http://localhost:3000**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/vendors` | Get all vendors |
-| POST | `/api/vendors` | Create new vendor |
 
 ### Vendor Response Routes (`/api/vendor-responses`)
 
@@ -345,7 +293,6 @@ Open your browser and navigate to: **http://localhost:3000**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/emails/sync` | Sync IMAP inbox for vendor responses |
-| GET | `/api/emails/stats` | Get email inbox statistics |
 
 ### Health Check
 
@@ -421,38 +368,6 @@ npm run build  # Create optimized production build
 npm start      # Start production server
 ```
 
-## 📦 File Upload Configuration
-
-- **Maximum files:** 5 per RFP
-- **Maximum size:** 10MB per file
-- **Allowed types:** PDF, DOC, DOCX, XLS, XLSX, TXT
-- **Storage:** Local filesystem in `rfp-backend/uploads/`
-
-## 📊 Status Workflow
-
-```
-┌─────────┐
-│ Pending │ ──────┐
-└─────────┘       │
-                  ▼
-              ┌──────────┐
-              │  Closed  │
-              └──────────┘
-                  
-┌─────────┐
-│ Pending │ ──────┐
-└─────────┘       │
-                  ▼
-              ┌──────────┐
-              │ Accepted │ (after accepting a vendor)
-              └──────────┘
-```
-
-**Status Meanings:**
-- **Pending:** RFP submitted, waiting for responses
-- **Closed:** RFP closed without acceptance
-- **Accepted:** A vendor proposal has been accepted
-
 ## 🤖 AI Analysis Details
 
 The AI analysis uses **OpenAI GPT-4 Turbo** to evaluate each vendor response:
@@ -501,243 +416,3 @@ sudo systemctl start mongod
 # 2. Whitelist your IP address in Atlas
 # 3. Verify username/password
 ```
-
-### Email Not Sending/Syncing
-
-**Problem:** Emails not being sent or IMAP sync failing
-
-**Solutions:**
-1. **Verify Gmail settings:**
-   - 2-Step Verification is enabled
-   - Using App Password (not regular password)
-   - IMAP is enabled in Gmail settings
-
-2. **Check .env configuration:**
-   ```env
-   SMTP_HOST=smtp.gmail.com
-   SMTP_PORT=587
-   SMTP_USER=your-email@gmail.com
-   SMTP_PASS=16-digit-app-password  # No spaces!
-   
-   IMAP_HOST=imap.gmail.com
-   IMAP_PORT=993
-   IMAP_USER=your-email@gmail.com
-   IMAP_PASS=16-digit-app-password  # Same as SMTP_PASS
-   ```
-
-3. **Test email connection:**
-   - Try sending a test email through Gmail web interface
-   - Check "Less secure app access" is NOT needed (App Password handles this)
-   - Check spam folder for emails
-
-4. **IMAP specific:**
-   - Wait 1-2 minutes for emails to arrive
-   - Vendor must reply to the exact email address
-   - Check backend console for sync errors
-
-### CORS Errors
-
-**Problem:** CORS policy blocking requests
-
-**Solutions:**
-1. Verify `FRONTEND_URL` in backend `.env`:
-   ```env
-   FRONTEND_URL=http://localhost:3000
-   ```
-
-2. Ensure both servers are running:
-   - Backend on port 5000
-   - Frontend on port 3000
-
-3. Check browser console for specific CORS errors
-4. Clear browser cache and reload
-
-### Port Already in Use
-
-**Problem:** Port 5000 or 3000 already in use
-
-**Solutions:**
-```bash
-# Kill process on port 5000 (backend)
-lsof -ti:5000 | xargs kill -9
-
-# Kill process on port 3000 (frontend)
-lsof -ti:3000 | xargs kill -9
-
-# Or change port in .env:
-# Backend: PORT=5001
-# Frontend: (Next.js will auto-select next available port)
-```
-
-### AI Analysis Not Working
-
-**Problem:** Vendor responses not getting AI analysis
-
-**Solutions:**
-1. **Check OpenAI API key:**
-   ```env
-   OPENAI_API_KEY=sk-...
-   ```
-
-2. **Verify API key is valid:**
-   - Visit https://platform.openai.com/api-keys
-   - Check key status and limits
-   - Ensure billing is set up
-
-3. **Check backend console for errors:**
-   - Rate limit errors (upgrade plan or wait)
-   - Invalid API key errors
-   - Network errors
-
-4. **Manual retry:**
-   - Delete the vendor response
-   - Re-sync emails to trigger analysis again
-
-### File Upload Errors
-
-**Problem:** Files not uploading
-
-**Solutions:**
-1. **Check file size:** Must be under 10MB
-2. **Check file type:** Only PDF, DOC, DOCX, XLS, XLSX, TXT
-3. **Check uploads folder:** `rfp-backend/uploads/` must exist and be writable
-   ```bash
-   mkdir -p rfp-backend/uploads
-   chmod 755 rfp-backend/uploads
-   ```
-
-### Vendor Response Not Appearing
-
-**Problem:** Synced email but no vendor response
-
-**Solutions:**
-1. **Check vendor email matching:**
-   - Vendor must be in VENDOR_EMAILS list in .env
-   - Email must be sent FROM vendor's email
-   - Subject should contain RFP ID (optional but helps)
-
-2. **Check backend console:**
-   - Look for "No matching RFP found" errors
-   - Check for email parsing errors
-
-3. **Verify email content:**
-   - Email should contain pricing info
-   - Timeline information helps
-   - Clear text content (not just HTML)
-
-4. **Check sync window:**
-   - Only syncs emails from last 5 days
-   - Older emails are ignored
-
-## 🔒 Security Notes
-
-- **No Authentication:** System is open (as per project requirements)
-- **File Validation:** Upload types and sizes are validated
-- **CORS Configuration:** Restricted to specified frontend URL
-- **Environment Variables:** Sensitive data stored in .env (not in git)
-- **MongoDB Injection:** Protected via Mongoose ODM
-- **Email Security:** Uses App Passwords (more secure than regular passwords)
-- **Input Sanitization:** Email content is parsed and sanitized
-- **File Storage:** Uploaded files stored locally with unique names
-
-## 🎯 Email Workflow Details
-
-### Vendor Email Matching Algorithm
-
-The system uses a **vendor-first matching** approach:
-
-1. **Email Received** → Check sender's email address
-2. **Find Vendor** → Match against vendors in database
-3. **Find RFP** → Look for recent RFPs (last 5 days) sent to that vendor
-4. **Parse Content** → Extract proposal details using AI
-5. **Analyze** → Score and provide recommendations
-6. **Store** → Save vendor response with AI analysis
-
-### Email Parsing
-
-The system extracts:
-- **Vendor Name:** From email sender name
-- **Vendor Email:** From email sender address
-- **Subject:** Email subject line
-- **Proposed Price:** Detected from keywords ($, price, cost, budget)
-- **Timeline:** Detected from keywords (weeks, months, days, timeline)
-- **Experience:** Years of experience, if mentioned
-- **Team Size:** Number of team members, if mentioned
-- **Approach:** Full email body content
-
-### Email Templates
-
-**RFP Notification to Vendor:**
-- Professional HTML template
-- RFP details (title, budget, deadline)
-- Requirements
-- Contact information
-- Instructions to reply
-
-**Acceptance Email to Vendor:**
-- Congratulations message
-- Project details
-- Proposal information accepted
-- AI score achieved
-- Next steps
-- Contact information
-
-## 📈 Future Enhancements
-
-### Planned Features
-- User authentication and authorization
-- Multi-tenant support
-- Real-time notifications (WebSockets)
-- Advanced search and filtering
-- Export to PDF/Excel
-- Dashboard with analytics and charts
-- Email template customization
-- Vendor portal for direct submission
-- Contract generation
-- Budget tracking and alerts
-- Calendar integration
-- Mobile app (React Native)
-
-### Technical Improvements
-- Redis caching for better performance
-- Queue system (Bull/BullMQ) for email processing
-- Elasticsearch for advanced search
-- S3 integration for file storage
-- Automated testing (Jest, Cypress)
-- Docker containerization
-- CI/CD pipeline
-- Monitoring and logging (Winston, Sentry)
-
-## 📄 License
-
-ISC License
-
-Copyright (c) 2026
-
-Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
-
-## 👥 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-For issues, questions, or contributions:
-- Create an issue on GitHub
-- Check troubleshooting section above
-- Review code comments for implementation details
-
-## 🙏 Acknowledgments
-
-- **OpenAI** for GPT-4 API
-- **Next.js** team for the amazing framework
-- **MongoDB** for the database
-- **Node.js** community for excellent packages
-
----
-
-**Built with ❤️ using Next.js, Express.js, MongoDB, and OpenAI**
