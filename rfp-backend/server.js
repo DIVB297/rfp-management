@@ -21,7 +21,7 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins for now
+  origin: true, // Allow all origins by reflecting the request origin
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
