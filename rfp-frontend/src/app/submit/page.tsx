@@ -228,7 +228,7 @@ export default function SubmitRFP() {
               />
             </div>
 
-            <div className="md:col-span-2">
+            {/* <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Attachments (optional)
               </label>
@@ -241,7 +241,7 @@ export default function SubmitRFP() {
               <p className="text-sm text-gray-500 mt-1">
                 You can upload up to 5 files (PDF, DOC, DOCX, XLS, XLSX, TXT - max 10MB each)
               </p>
-            </div>
+            </div> */}
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-3">
